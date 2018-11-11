@@ -97,14 +97,11 @@ While 1
             Access($Checkbox_2)
             Access($Checkbox_3)
 		Case $idDownloadFile
-			$aItems = _GUICtrlListBox_GetSelItems($List)
+			;$aItems = _GUICtrlListBox_GetSelItems($List)
+			$aTextItems = _GUICtrlListBox_GetSelItemsText($List)
+			_ArrayDisplay($aTextItems)
 			
-			For $iI = 1 To $aItems[0]
-				If $iI > 1 Then $sItems &= ", "
-				$sItems &= $aItems[$iI]
-			Next
-			
-			$sFileToBeDownloaded = getFilesForDownload($sItems)
+			$sFileToBeDownloaded = getFilesForDownload($aTextItems)
 			FileCopy($sFileToBeDownloaded, $pathToDownloads)
 			
 			; clearing values for additional downloads
@@ -170,7 +167,6 @@ Func _DBUpdate()
 EndFunc
 
 Func getFilesForDownload($ArrayForDownload)
-	showMessage("arrayForDL: "&$ArrayForDownload)
 	$AdoCon = ObjCreate("ADODB.Connection")
 	$AdoCon.Open("Provider=Microsoft.ACE.OLEDB.12.0; Data Source=" & $pathToDB)
 	$AdoRs = ObjCreate("ADODB.Recordset")
@@ -178,25 +174,28 @@ Func getFilesForDownload($ArrayForDownload)
 	$AdoRs.LockType = 3
 	$AdoRs.Open("SELECT COUNT(*) FROM " & $Table_Name, $AdoCon)
 	Redim $PathsForDownload[$ArrayForDownload]
+	_ArrayDisplay($PathsForDownload)
 	If GUICtrlRead($Checkbox_1) = $GUI_CHECKED Then
-		$AdoRs = ObjCreate("ADODB.Recordset")
-		$AdoRs.CursorType = 1
-		$AdoRs.LockType = 3
-		$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = 'Controller' OR Feld2 = 'Controller' OR Feld3 = 'Controller'")
-		;$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE ID = " & ($ArrayForDownload[$i]), $AdoCon)
-		showMessage($AdoRs.Fields(5).Value)
+		For $i = 1 To UBound($ArrayForDownload)
+			showMessage($ArrayForDownload[$i])
+			$AdoRs = ObjCreate("ADODB.Recordset")
+			$AdoRs.CursorType = 1
+			$AdoRs.LockType = 3
+			;$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = Controller")
+			$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = "&$ArrayForDownload[$i]&";", $AdoCon)
+			;$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE ID = " & ($ArrayForDownload[$i]), $AdoCon)
+			;showMessage("f5 "&$AdoRs.Fields(5).Value & "f4 "&$AdoRs.Fields(4).Value & "f3 "&$AdoRs.Fields(3).Value &"f2 "&$AdoRs.Fields(2).Value &"f1 "&$AdoRs.Fields(1).Value )
+		Next
 	Endif
 	For $i=0 To UBound($ArrayForDownload)-1
 		$AdoRs = ObjCreate("ADODB.Recordset")
 		$AdoRs.CursorType = 1
 		$AdoRs.LockType = 3
-		showMessage($AdoRs.Fields(5).Value)
+		;showMessage($AdoRs.Fields(5).Value)
 		$PathsForDownload[$i] = $AdoRs.Fields(5).Value
 	Next
 	$AdoRs.Close
     $AdoCon.Close
-	showMessage($PathsForDownload)
-	showMessage($ArrayForDownload)
 	Return $PathsForDownload
 EndFunc
 
