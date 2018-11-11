@@ -6,7 +6,7 @@
 Global $Files[0]
 Global $File_Attr[0][3]
 
-Global $pathToDB = @ScriptDir & "\" &"Database6.accdb"
+Global $pathToDB = @ScriptDir & "\" &"Database4.accdb"
 Global $pathToFiles = @ScriptDir & "\" &"files"
 Global $pathToDownloads = @UserProfileDir & "\Downloads"
 
@@ -100,10 +100,8 @@ While 1
 			$aTextItems = _GUICtrlListBox_GetSelItemsText($List)
 			
 			$sFileToBeDownloaded = getFilesForDownload($aTextItems)
-			_ArrayDisplay($sFileToBeDownloaded,"za DL!!!!!!!!!")
 		
 			For $j = 1 to Ubound($sFileToBeDownloaded)-1
-				showMessage($sFileToBeDownloaded[$j])
 				FileCopy($sFileToBeDownloaded[$j], $pathToDownloads)
 				If @error Then showMessage(@error)
 			Next
@@ -114,7 +112,7 @@ WEnd
 
 ###########################################################################
 ;																		  ;
-;''''''''''''''''''''''''''''''' FUNCTIONS ''''''''''''''''''''''''''''''';
+;'''''''''''''''''''''''''''''' FUNCTIONS '''''''''''''''''''''''''''''''';
 ;																		  ;
 ###########################################################################
 
