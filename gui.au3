@@ -16,6 +16,7 @@ Global $Attr_Name[3] = ["", "", ""]
 
 Global $PathsForDownload[0]
 Global $ArrayForDownload[0]
+Global $sFileToBeDownloaded[0]
 _DBUpdate()
 
 $GroupHeight = 1
@@ -48,7 +49,6 @@ Global $sItems
 
 ; GUI loop
 While 1
-	
     $msg = GUIGetMsg()
     Switch $msg
         Case $Checkbox_1, $Checkbox_2, $Checkbox_3
@@ -97,16 +97,18 @@ While 1
             Access($Checkbox_2)
             Access($Checkbox_3)
 		Case $idDownloadFile
-			;$aItems = _GUICtrlListBox_GetSelItems($List)
 			$aTextItems = _GUICtrlListBox_GetSelItemsText($List)
-			_ArrayDisplay($aTextItems)
 			
 			$sFileToBeDownloaded = getFilesForDownload($aTextItems)
-			FileCopy($sFileToBeDownloaded, $pathToDownloads)
-			
+			_ArrayDisplay($sFileToBeDownloaded,"za DL!!!!!!!!!")
+		
+			For $j = 1 to Ubound($sFileToBeDownloaded)-1
+				showMessage($sFileToBeDownloaded[$j])
+				FileCopy($sFileToBeDownloaded[$j], $pathToDownloads)
+				If @error Then showMessage(@error)
+			Next
 			; clearing values for additional downloads
-			$aItems = ""
-			$sItems = ""
+			$sFileToBeDownloaded = ""
 	EndSwitch
 WEnd
 
@@ -173,37 +175,18 @@ Func getFilesForDownload($ArrayForDownload)
 	$AdoRs.CursorType = 1
 	$AdoRs.LockType = 3
 	$AdoRs.Open("SELECT COUNT(*) FROM " & $Table_Name, $AdoCon)
-	Redim $PathsForDownload[$ArrayForDownload]
-	_ArrayDisplay($PathsForDownload)
-	If GUICtrlRead($Checkbox_1) = $GUI_CHECKED Then
-		For $i = 1 To UBound($ArrayForDownload)
-			showMessage($ArrayForDownload[$i])
+	Redim $PathsForDownload[Ubound($ArrayForDownload)]
+		For $i = 1 To UBound($ArrayForDownload)-1
 			$AdoRs = ObjCreate("ADODB.Recordset")
 			$AdoRs.CursorType = 1
 			$AdoRs.LockType = 3
-			;$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = Controller")
-			$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = "&$ArrayForDownload[$i]&";", $AdoCon)
-			;$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE ID = " & ($ArrayForDownload[$i]), $AdoCon)
-			;showMessage("f5 "&$AdoRs.Fields(5).Value & "f4 "&$AdoRs.Fields(4).Value & "f3 "&$AdoRs.Fields(3).Value &"f2 "&$AdoRs.Fields(2).Value &"f1 "&$AdoRs.Fields(1).Value )
+			$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)		
+			$PathsForDownload[$i] = $AdoRs.Fields(5).Value
 		Next
-	Endif
-	For $i=0 To UBound($ArrayForDownload)-1
-		$AdoRs = ObjCreate("ADODB.Recordset")
-		$AdoRs.CursorType = 1
-		$AdoRs.LockType = 3
-		;showMessage($AdoRs.Fields(5).Value)
-		$PathsForDownload[$i] = $AdoRs.Fields(5).Value
-	Next
 	$AdoRs.Close
     $AdoCon.Close
 	Return $PathsForDownload
 EndFunc
-
-;Func _DBConnect()
-;	$AdoCon = ObjCreate("ADODB.Connection")
-;   $AdoCon.Open("Provider=Microsoft.ACE.OLEDB.12.0; Data Source=" & $pathToDB)
-	;Return $AdoCon
-;Endfunc	
 
 Func showMessage($message)
 	MsgBox(0, "Autoit", $message)
