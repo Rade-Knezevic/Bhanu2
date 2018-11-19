@@ -42,14 +42,14 @@ $RatingsListFromLeft = 125
 
 $Form_Main = GUICreate("GUI managing Database", 250, 380)
 $Group_Attributes = GUICtrlCreateGroup("Attributes", 20, 20, 200, 130)
-$Checkbox_1 = GUICtrlCreateCheckbox($Attr_Name[0], 40, 50)
-$Checkbox_2 = GUICtrlCreateCheckbox($Attr_Name[1], 40, 80)
-$Checkbox_3 = GUICtrlCreateCheckbox($Attr_Name[2], 40, 110)
+Global $Checkbox_1 = GUICtrlCreateCheckbox("Controller", 40, 50)
+Global $Checkbox_2 = GUICtrlCreateCheckbox("Testing", 40, 80)
+Global $Checkbox_3 = GUICtrlCreateCheckbox("Simulation", 40, 110)
 $idAddFile = GUICtrlCreateButton("Add", 140, 70, 60, 20)
 $idDownloadFile = GUICtrlCreateButton("Download", 140, 110, 60, 20)
 $Group_Files = GUICtrlCreateGroup("Files", $FilesGroupFromLeft, $GroupsFromTop, $GroupWidth ,$GroupHeight)
 $Group_Ratings = GUICtrlCreateGroup("Ratings", $RatingsGroupFromLeft, $GroupsFromTop, $GroupWidth, $GroupHeight)
-Global $List = GUICtrlCreateList("", $FileListFromLeft, $ListsFromTop, $ListWidth, $ListHeight,BitOR($LBS_EXTENDEDSEL, $LBS_DISABLENOSCROLL))
+Global $List = GUICtrlCreateList("", $FileListFromLeft, $ListsFromTop, $ListWidth, $ListHeight,$LBS_EXTENDEDSEL)
 Global $ListRatings = GUICtrlCreateList("", $RatingsListFromLeft, $ListsFromTop, $ListWidth, $ListHeight,BitOR($LBS_EXTENDEDSEL, $LBS_DISABLENOSCROLL))
 
 GUISetState(@SW_SHOW)
@@ -63,9 +63,10 @@ While 1
         Case $Checkbox_1, $Checkbox_2, $Checkbox_3
 			GUICtrlSetData($List, "")		
 			GUICtrlSetData($ListRatings, "")
-            Access($Checkbox_1)
-            Access($Checkbox_2)
-            Access($Checkbox_3)
+			AccessAll($Checkbox_1,$Checkbox_2,$Checkbox_3)
+            ;Access($Checkbox_1)
+            ;Access($Checkbox_2)
+            ;Access($Checkbox_3)
         Case $GUI_EVENT_CLOSE ; Close GUI
             ExitLoop
         Case $idAddFile
@@ -73,7 +74,7 @@ While 1
 			$check2 = CheckboxCheck($Checkbox_2)
 			$check3 = CheckboxCheck($Checkbox_3)
 			; this check prevents upload ing files if all 3 checkboxes are not checked
-			If $check1 = false and $check2 = false and $check3 = false Then
+			If $check1 = 0 and $check2 = 0 and $check3 = 0 Then
 			showMessage("At least 1 checkbox must be checked in order to download")
 			ContinueLoop
 			Else	 	
@@ -97,18 +98,18 @@ While 1
 							Case 1
 								$AdoRs.AddNew
 								$AdoRs.Fields("Feld1").value = StringTrimLeft($aFiles[1], StringInStr($aFiles[1], "\", 0, -1))
-								If BitAnd(GUICtrlRead($Checkbox_1),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Feld2").value = GUICtrlRead($Checkbox_1, 1)
-								If BitAnd(GUICtrlRead($Checkbox_2),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Feld3").value = GUICtrlRead($Checkbox_2, 1)
-								If BitAnd(GUICtrlRead($Checkbox_3),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Feld4").value = GUICtrlRead($Checkbox_3, 1)
+								If BitAnd(GUICtrlRead($Checkbox_1),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Controller").value = "Controller"
+								If BitAnd(GUICtrlRead($Checkbox_2),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Testing").value = "Testing"
+								If BitAnd(GUICtrlRead($Checkbox_3),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Simulation").value = "Simulation"
 								$AdoRs.Fields("FilePath").value = $pathToFiles&"\"&StringTrimLeft($aFiles[1], StringInStr($aFiles[1], "\", 0, -1))
 								$AdoRs.Update
 							Case 2 To $aFiles[0]
 								For $i = 2 To $aFiles[0]
 									$AdoRs.AddNew
 									$AdoRs.Fields("Feld1").value = $aFiles[$i]
-									If BitAnd(GUICtrlRead($Checkbox_1),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Feld2").value = GUICtrlRead($Checkbox_1, 1)
-									If BitAnd(GUICtrlRead($Checkbox_2),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Feld3").value = GUICtrlRead($Checkbox_2, 1)
-									If BitAnd(GUICtrlRead($Checkbox_3),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Feld4").value = GUICtrlRead($Checkbox_3, 1)
+									If BitAnd(GUICtrlRead($Checkbox_1),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Controller").value = "Controller"
+									If BitAnd(GUICtrlRead($Checkbox_2),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Testing").value = "Testing"
+									If BitAnd(GUICtrlRead($Checkbox_3),$GUI_CHECKED) = $GUI_CHECKED Then $AdoRs.Fields("Simulation").value = "Simulation"
 									$AdoRs.Fields("FilePath").value = $pathToFiles&"\"&StringTrimLeft($aFiles[$i], StringInStr($aFiles[$i], "\", 0, -1))
 									$AdoRs.Update
 								Next
@@ -118,9 +119,7 @@ While 1
 						_DBUpdate()
 						GUICtrlSetData($List, "")
 						GUICtrlSetData($ListRatings, "")
-						Access($Checkbox_1)
-						Access($Checkbox_2)
-						Access($Checkbox_3)
+						AccessAll($Checkbox_1,$Checkbox_2,$Checkbox_3)
 						$sFileToBeCopied = ""
 					Endif	
 				Endif
@@ -128,6 +127,7 @@ While 1
 		Case $idDownloadFile
 			; getting selected items
 			$aTextItems = _GUICtrlListBox_GetSelItemsText($List)
+			_ArrayDisplay($aTextItems, "text isems")
 			; getting paths for downloading
 			$sFileToBeDownloaded = getFilesForDownload($aTextItems)
 		
@@ -180,10 +180,105 @@ Func Access($Checkbox)
     Endif
 EndFunc
 
+Func AccessAll($Checkbox1,$Checkbox2,$Checkbox3)
+
+	$check1 = CheckboxCheck($Checkbox_1)
+	$check2 = CheckboxCheck($Checkbox_2)
+	$check3 = CheckboxCheck($Checkbox_3)
+	if $check1 or $check2 or $check3 Then
+		$SortedFiles = _EmptyString($SortedFiles)
+		$SortedRatings = _EmptyString($SortedRatings)
+
+		; make this array same length as the unsorted one
+		ReDim $SortedFiles[UBound($Files)]
+		ReDim $SortedRatings[UBound($Files)]
+		ReDim $SortedArrays[UBound($Files)][4]
+			
+		$result = _ArrayToNumber($result)
+		; sorting ratings using function from highest to lowest
+		$SortedFiles = _SortMySecondArray($result,$Files)
+		$SortedRatings = _SortMyArray($result)
+			
+		For $i = 0 To Ubound($Files)-1
+		$SortedArrays[$i][0] = $Files[$i]
+		$SortedArrays[$i][1] = $result[$i]
+		$SortedArrays[$i][2] = $SortedRatings[$i]
+		$SortedArrays[$i][3] = $SortedFiles[$i]
+		Next
+			
+		$accessSwitch = _AccessSwitch($check1,$check2,$check3)
+
+		For $i = 0 To UBound($Files)-1 Step 1
+			Switch $accessSwitch
+				Case 1
+				If $File_Attr[$i][0] = "Controller" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 2
+				If $File_Attr[$i][1] = "Testing" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 3
+				If $File_Attr[$i][2] = "Simulation" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 4
+				If $File_Attr[$i][0] = "Controller" or $File_Attr[$i][1] = "Testing" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 5
+				If $File_Attr[$i][0] = "Controller" or $File_Attr[$i][2] = "Simulation" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 6
+				If $File_Attr[$i][1] = "Testing" or $File_Attr[$i][2] = "Simulation" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 7
+				If $File_Attr[$i][0] = "Controller" or $File_Attr[$i][1] = "Testing" or $File_Attr[$i][2] = "Simulation" Then
+				_GUICtrlListBox_AddString($List, $SortedFiles[$i])
+				_GUICtrlListBox_AddString($ListRatings, $SortedRatings[$i])
+				Endif
+				Case 0
+				GUICtrlSetData($List, "")		
+				GUICtrlSetData($ListRatings, "")
+			EndSwitch	
+		Next
+	Endif	
+EndFunc
+
+Func _AccessSwitch($check1,$check2,$check3)
+	Global $accessSwitch
+	If $check1 = 1 AND $check2 = 0 AND $check3 = 0 Then
+		$accessSwitch = 1
+	ElseIf $check1 = 0 AND $check2 = 1 AND $check3 = 0 Then
+		$accessSwitch = 2
+	ElseIf $check1 = 0 AND $check2 = 0 AND $check3 = 1 Then
+		$accessSwitch = 3
+	ElseIf $check1 = 1 AND $check2 = 1 AND $check3 = 0 Then
+		$accessSwitch = 4
+	ElseIf $check1 = 0 AND $check2 = 1 AND $check3 = 1 Then
+		$accessSwitch = 5	
+	ElseIf $check1 = 1 AND $check2 = 0 AND $check3 = 1 Then
+		$accessSwitch = 6	
+	ElseIf $check1 = 1 AND $check2 = 1 AND $check3 = 1 Then
+		$accessSwitch = 7
+	Else
+		$accessSwitch = 0
+	Endif	
+	Return $accessSwitch	
+EndFunc	
+	
 Func CheckboxCheck($Checkbox)
-	Local $boolean = false
+	Local $boolean = 0
 	If GUICtrlRead($Checkbox) = $GUI_CHECKED Then
-	$boolean = true
+	$boolean = 1
 	Endif
 	Return $boolean
 Endfunc 
@@ -193,6 +288,7 @@ Func _DBUpdate()
 	$AdoRs = _DBCreateObject()
     $AdoRs.Open("SELECT COUNT(*) FROM " & $Table_Name, $AdoCon)
     $dimension = $AdoRs.Fields(0).Value	
+	$AdoRs.Close
     ReDim $Files[$dimension+1]
     ReDim $File_Attr[$dimension+1][3]
     For $i = 0 To $dimension-1 Step 1
@@ -208,11 +304,10 @@ Func _DBUpdate()
 		endif
 		$AdoRs2.Close
     Next
-    $AdoRs.Close
     $AdoCon.Close
 
     Local $a = 0
-    For $i = 1 To UBound($Files) Step 1
+    For $i = 0 To UBound($Files)-1 Step 1
         For $j = 0 To 2 Step 1
             If $a < 3 And Not $File_Attr[$i][$j] = "" Then
                 For $k = $a To 2 Step 1
@@ -229,36 +324,34 @@ EndFunc
 
 Func getFilesForDownload($ArrayForDownload)
 	$AdoCon = _DBConnect()
-	$AdoRs = _DBCreateObject()
-	$AdoRs.Open("SELECT COUNT(*) FROM " & $Table_Name, $AdoCon)
-	
+	_ArrayDisplay($ArrayForDownload, "array for DL")
 	; redimensioning $pathsForDownload variable so that it can store all paths 
 	Redim $PathsForDownload[Ubound($ArrayForDownload)]
 	Redim $NamesForDownload[Ubound($ArrayForDownload)]
-	
+	_ArrayDisplay($PathsForDownload, "paths for DL")
+	_ArrayDisplay($NamesForDownload, "names for DL")
 	; getting all paths in this loop using file names
 	For $i = 1 To UBound($ArrayForDownload)-1
-		$AdoRs2 = _DBCreateObject()
-		$AdoRs2.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)		
+		showMessage($ArrayForDownload[$i])
+		$AdoRs = _DBCreateObject()
+		$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)		
 
-		$NamesForDownload[$i] = $AdoRs2.Fields(1).Value
-		$PathsForDownload[$i] = @ScriptDir &"\"&"files"
-		
-		; updating NumberOfDownloads value
-		if $AdoRs2.Fields(6).Value = null Then
-		$AdoRs3 = _DBCreateObject()
-		$AdoRs3.Open("UPDATE " & $Table_Name & " SET NumberOfDownloads=1 WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
-		else 
-		$AdoRs4 = _DBCreateObject()
-		$AdoRs4.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
-		$DLNumber = $AdoRs4.Fields(6).Value
+		$NamesForDownload[$i] = $AdoRs.Fields(1).Value
+		$PathsForDownload[$i] = @ScriptDir &"\"&"files"&"\"&$NamesForDownload[$i]
+
+		; updating NumberOfDownloads value 
+		$AdoRs2 = _DBCreateObject()
+		$AdoRs2.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
+		$DLNumber = $AdoRs2.Fields(6).Value
+		showMessage($DLNumber)
 		$DLNumber +=1
-		$AdoRs5 = _DBCreateObject()
-		$AdoRs5.Open("UPDATE " & $Table_Name & " SET NumberOfDownloads="&$DLNumber&" WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
-		endif
+		showMessage($DLNumber)
+		$AdoRs3 = _DBCreateObject()
+		$AdoRs3.Open("UPDATE " & $Table_Name & " SET NumberOfDownloads="&$DLNumber&" WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
 	Next
-	$AdoRs.Close
     $AdoCon.Close
+	_ArrayDisplay($PathsForDownload)
+	_ArrayDisplay($NamesForDownload)
 	Return $PathsForDownload
 EndFunc
 
