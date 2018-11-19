@@ -66,8 +66,6 @@ While 1
             Access($Checkbox_1)
             Access($Checkbox_2)
             Access($Checkbox_3)
-		Case $Checkbox_1 AND $Checkbox_2
-			showMessage("2")
         Case $GUI_EVENT_CLOSE ; Close GUI
             ExitLoop
         Case $idAddFile
