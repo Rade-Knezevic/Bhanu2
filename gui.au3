@@ -125,19 +125,25 @@ While 1
 				Endif
 			Endif
 		Case $idDownloadFile
-			; getting selected items
-			$aTextItems = _GUICtrlListBox_GetSelItemsText($List)
-			_ArrayDisplay($aTextItems, "text isems")
-			; getting paths for downloading
-			$sFileToBeDownloaded = getFilesForDownload($aTextItems)
-		
-			; copying files from files folder to downloads folder
-			For $j = 1 to Ubound($sFileToBeDownloaded)-1
-				FileCopy($sFileToBeDownloaded[$j], $pathToDownloads)
-				If @error Then showMessage(@error)
-			Next
-			; clearing value for additional downloads
-			$sFileToBeDownloaded = ""
+		; getting selected items
+		$aTextItems = _GUICtrlListBox_GetSelItemsText($List)
+		Local $suggestedName = $aTextItems[1]
+			$sDownloadDialog = FileSaveDialog("Download file(s)", $pathToDownloads, "Text files (*.txt)", 16, $suggestedName)
+			If @error Then
+				; Display the error message.
+				MsgBox($MB_SYSTEMMODAL, "", "No file was saved.")
+			Else		
+				; getting paths for downloading
+				$sFileToBeDownloaded = getFilesForDownload($aTextItems)
+			
+				; copying files from files folder to downloads folder
+				For $j = 1 to Ubound($sFileToBeDownloaded)-1
+					FileCopy($sFileToBeDownloaded[$j], $sDownloadDialog)
+					If @error Then showMessage(@error)
+				Next
+				; clearing value for additional downloads
+				$sFileToBeDownloaded = ""
+			Endif
 	EndSwitch
 WEnd
 
@@ -324,15 +330,11 @@ EndFunc
 
 Func getFilesForDownload($ArrayForDownload)
 	$AdoCon = _DBConnect()
-	_ArrayDisplay($ArrayForDownload, "array for DL")
 	; redimensioning $pathsForDownload variable so that it can store all paths 
 	Redim $PathsForDownload[Ubound($ArrayForDownload)]
 	Redim $NamesForDownload[Ubound($ArrayForDownload)]
-	_ArrayDisplay($PathsForDownload, "paths for DL")
-	_ArrayDisplay($NamesForDownload, "names for DL")
 	; getting all paths in this loop using file names
 	For $i = 1 To UBound($ArrayForDownload)-1
-		showMessage($ArrayForDownload[$i])
 		$AdoRs = _DBCreateObject()
 		$AdoRs.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)		
 
@@ -343,15 +345,11 @@ Func getFilesForDownload($ArrayForDownload)
 		$AdoRs2 = _DBCreateObject()
 		$AdoRs2.Open("SELECT * FROM " & $Table_Name & " WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
 		$DLNumber = $AdoRs2.Fields(6).Value
-		showMessage($DLNumber)
 		$DLNumber +=1
-		showMessage($DLNumber)
 		$AdoRs3 = _DBCreateObject()
 		$AdoRs3.Open("UPDATE " & $Table_Name & " SET NumberOfDownloads="&$DLNumber&" WHERE Feld1 = '"&$ArrayForDownload[$i]&"'", $AdoCon)
 	Next
     $AdoCon.Close
-	_ArrayDisplay($PathsForDownload)
-	_ArrayDisplay($NamesForDownload)
 	Return $PathsForDownload
 EndFunc
 
